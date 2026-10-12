@@ -323,7 +323,18 @@ Acad::ErrorStatus CPearGemstone::subGetGripPoints(
     AcDbIntArray& geomIds) const
 {
     assertReadEnabled();
+
+    const double halfWidth = m_width / 2.0;
+    const double widestX = m_length * WIDEST_OFFSET;
+
     gripPoints.append(m_center);
+    gripPoints.append(m_center + AcGeVector3d(m_length * TIP_OFFSET, 0.0, 0.0));
+    gripPoints.append(m_center + AcGeVector3d(widestX, halfWidth, 0.0));
+    gripPoints.append(m_center + AcGeVector3d(0.0, 0.0, m_crownHeight));
+    gripPoints.append(m_center + AcGeVector3d(0.0, 0.0, -m_pavilionDepth));
+    gripPoints.append(m_center + AcGeVector3d(m_length * ROUND_END_OFFSET, 0.0, 0.0));
+    gripPoints.append(m_center + AcGeVector3d(widestX, -halfWidth, 0.0));
+
     return Acad::eOk;
 }
 
@@ -335,8 +346,59 @@ Acad::ErrorStatus CPearGemstone::subMoveGripPointsAt(
 
     for (int i = 0; i < indices.length(); ++i)
     {
-        if (indices[i] == 0)
+        switch (indices[i])
+        {
+        case kGripCenter:
             m_center += offset;
+            break;
+
+        case kGripTip:
+        case kGripRoundEnd:
+        {
+            double fraction = TIP_OFFSET;
+            if (indices[i] == kGripRoundEnd)
+                fraction = ROUND_END_OFFSET;
+
+            const double newLength = m_length + offset.x / fraction;
+            if (newLength > 1.0 && newLength < 50.0)
+                m_length = newLength;
+            break;
+        }
+
+        case kGripWidthPos:
+        case kGripWidthNeg:
+        {
+            const double newWidth = m_width + (indices[i] == kGripWidthPos ? 2.0 : -2.0) * offset.y;
+            if (newWidth > 0.5 && newWidth < 30.0)
+                m_width = newWidth;
+            break;
+        }
+
+        case kGripCrownTop:
+        {
+            const double newCrownHeight = m_crownHeight + offset.z;
+            if (newCrownHeight > 0.1 && newCrownHeight < 10.0)
+            {
+                m_totalDepth += newCrownHeight - m_crownHeight;
+                m_crownHeight = newCrownHeight;
+            }
+            break;
+        }
+
+        case kGripCulet:
+        {
+            const double newPavilionDepth = m_pavilionDepth - offset.z;
+            if (newPavilionDepth > 0.1 && newPavilionDepth < 20.0)
+            {
+                m_totalDepth += newPavilionDepth - m_pavilionDepth;
+                m_pavilionDepth = newPavilionDepth;
+            }
+            break;
+        }
+
+        default:
+            break;
+        }
     }
 
     return Acad::eOk;
@@ -407,7 +469,7 @@ Acad::ErrorStatus CPearGemstone::dwgInFields(AcDbDwgFiler* pFiler)
     pFiler->readDouble(&m_crownHeight);
     pFiler->readDouble(&m_pavilionDepth);
 
-    calculateDerivedParameters();
+    m_girdleThickness = m_totalDepth * (GIRDLE_PERCENT / 100.0);
 
     return Acad::eOk;
 }

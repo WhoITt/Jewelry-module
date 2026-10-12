@@ -72,6 +72,23 @@ protected:
 private:
     static Adesk::UInt32 kCurrentVersionNumber;
 
+    enum GripIndex
+    {
+        kGripCenter = 0,
+        kGripLengthPos = 1,
+        kGripWidthPos = 2,
+        kGripCrownTop = 3,
+        kGripCulet = 4,
+        kGripLengthNeg = 5,
+        kGripWidthNeg = 6,
+        kGripTableLengthNeg = 7,
+        kGripTableLengthPos = 8,
+        kGripTableWidthNeg = 9,
+        kGripTableWidthPos = 10
+    };
+
+    void setTablePercentClamped(double percent);
+
     double m_length;
     double m_width;
     double m_totalDepth;
@@ -88,5 +105,7 @@ private:
     static constexpr double PAVILION_DEPTH_PERCENT = 85.0;
     static constexpr double GIRDLE_PERCENT = 1.0;
     static constexpr double DEFAULT_TABLE_PERCENT = 65.0;
+    static constexpr double MIN_TABLE_PERCENT = 55.0;
+    static constexpr double MAX_TABLE_PERCENT = 75.0;
     static constexpr double DEFAULT_CORNER_CUT = 25.0;
 };

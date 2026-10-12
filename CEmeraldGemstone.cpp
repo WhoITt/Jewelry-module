@@ -106,11 +106,21 @@ Nano::ErrorStatus CEmeraldGemstone::setTablePercent(double percent)
 {
     assertWriteEnabled();
 
-    if (percent < 55.0 || percent > 75.0)
+    if (percent < MIN_TABLE_PERCENT || percent > MAX_TABLE_PERCENT)
         return Nano::eInvalidInput;
 
     m_tablePercent = percent;
     return Nano::eOk;
+}
+
+void CEmeraldGemstone::setTablePercentClamped(double percent)
+{
+    if (percent < MIN_TABLE_PERCENT)
+        percent = MIN_TABLE_PERCENT;
+    else if (percent > MAX_TABLE_PERCENT)
+        percent = MAX_TABLE_PERCENT;
+
+    m_tablePercent = percent;
 }
 
 void CEmeraldGemstone::calculateDerivedParameters()
@@ -288,7 +298,23 @@ Acad::ErrorStatus CEmeraldGemstone::subGetGripPoints(
     AcDbIntArray& geomIds) const
 {
     assertReadEnabled();
+
+    const double halfLength = m_length / 2.0;
+    const double halfWidth = m_width / 2.0;
+    const double tableScale = m_tablePercent / 100.0;
+
     gripPoints.append(m_center);
+    gripPoints.append(m_center + AcGeVector3d(halfLength, 0.0, 0.0));
+    gripPoints.append(m_center + AcGeVector3d(0.0, halfWidth, 0.0));
+    gripPoints.append(m_center + AcGeVector3d(0.0, 0.0, m_crownHeight));
+    gripPoints.append(m_center + AcGeVector3d(0.0, 0.0, -m_pavilionDepth));
+    gripPoints.append(m_center + AcGeVector3d(-halfLength, 0.0, 0.0));
+    gripPoints.append(m_center + AcGeVector3d(0.0, -halfWidth, 0.0));
+    gripPoints.append(m_center + AcGeVector3d(-halfLength * tableScale, 0.0, m_crownHeight));
+    gripPoints.append(m_center + AcGeVector3d(halfLength * tableScale, 0.0, m_crownHeight));
+    gripPoints.append(m_center + AcGeVector3d(0.0, -halfWidth * tableScale, m_crownHeight));
+    gripPoints.append(m_center + AcGeVector3d(0.0, halfWidth * tableScale, m_crownHeight));
+
     return Acad::eOk;
 }
 
@@ -300,9 +326,70 @@ Acad::ErrorStatus CEmeraldGemstone::subMoveGripPointsAt(
 
     for (int i = 0; i < indices.length(); ++i)
     {
-        if (indices[i] == 0)
+        switch (indices[i])
         {
+        case kGripCenter:
             m_center += offset;
+            break;
+
+        case kGripLengthPos:
+        case kGripLengthNeg:
+        {
+            const double newLength = m_length + (indices[i] == kGripLengthPos ? 2.0 : -2.0) * offset.x;
+            if (newLength > 1.0)
+                m_length = newLength;
+            break;
+        }
+
+        case kGripWidthPos:
+        case kGripWidthNeg:
+        {
+            const double newWidth = m_width + (indices[i] == kGripWidthPos ? 2.0 : -2.0) * offset.y;
+            if (newWidth > 0.5)
+                m_width = newWidth;
+            break;
+        }
+
+        case kGripCrownTop:
+        {
+            const double newCrownHeight = m_crownHeight + offset.z;
+            if (newCrownHeight > 0.1)
+            {
+                m_totalDepth += newCrownHeight - m_crownHeight;
+                m_crownHeight = newCrownHeight;
+            }
+            break;
+        }
+
+        case kGripCulet:
+        {
+            const double newPavilionDepth = m_pavilionDepth - offset.z;
+            if (newPavilionDepth > 0.1)
+            {
+                m_totalDepth += newPavilionDepth - m_pavilionDepth;
+                m_pavilionDepth = newPavilionDepth;
+            }
+            break;
+        }
+
+        case kGripTableLengthNeg:
+            setTablePercentClamped(m_tablePercent - offset.x / m_length * 200.0);
+            break;
+
+        case kGripTableLengthPos:
+            setTablePercentClamped(m_tablePercent + offset.x / m_length * 200.0);
+            break;
+
+        case kGripTableWidthNeg:
+            setTablePercentClamped(m_tablePercent - offset.y / m_width * 200.0);
+            break;
+
+        case kGripTableWidthPos:
+            setTablePercentClamped(m_tablePercent + offset.y / m_width * 200.0);
+            break;
+
+        default:
+            break;
         }
     }
 
@@ -375,7 +462,8 @@ Acad::ErrorStatus CEmeraldGemstone::dwgInFields(AcDbDwgFiler* pFiler)
     pFiler->readDouble(&m_cornerCutPercent);
     pFiler->readDouble(&m_tablePercent);
 
-    calculateDerivedParameters();
+    // Crown height and pavilion depth are kept as stored: the grips change them independently.
+    m_girdleThickness = m_totalDepth * (GIRDLE_PERCENT / 100.0);
 
     return Acad::eOk;
 }

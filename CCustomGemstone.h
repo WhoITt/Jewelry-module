@@ -118,6 +118,17 @@ public:
 private:
     static Adesk::UInt32 kCurrentVersionNumber;
 
+    enum GripIndex
+    {
+        kGripCenter = 0,
+        kGripCrownTop = 1,
+        kGripCulet = 2,
+        kGripGirdleFirst = 3,
+        kGripGirdleLast = 6,
+        kGripTableFirst = 7,
+        kGripTableLast = 10
+    };
+
     double m_girdleDiameter;
     double m_tablePercent;
     double m_crownHeight;

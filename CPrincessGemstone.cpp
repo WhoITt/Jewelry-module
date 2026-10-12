@@ -1,6 +1,11 @@
 #include "pch.h"
 #include "CPrincessGemstone.h"
 
+namespace
+{
+const double kCornerDirs[4][2] = { { 1.0, 1.0 }, { -1.0, 1.0 }, { -1.0, -1.0 }, { 1.0, -1.0 } };
+}
+
 Adesk::UInt32 CPrincessGemstone::kCurrentVersionNumber = 1;
 
 ACRX_DXF_DEFINE_MEMBERS(
@@ -270,7 +275,16 @@ Acad::ErrorStatus CPrincessGemstone::subGetGripPoints(
     AcDbIntArray& geomIds) const
 {
     assertReadEnabled();
+
+    const double halfSide = m_squareSide / 2.0;
+
     gripPoints.append(m_center);
+    gripPoints.append(m_center + AcGeVector3d(0.0, 0.0, m_squareSide * m_crownHeight / 100.0));
+    gripPoints.append(m_center + AcGeVector3d(0.0, 0.0, -m_squareSide * m_pavilionDepth / 100.0));
+
+    for (int i = 0; i < 4; ++i)
+        gripPoints.append(m_center + AcGeVector3d(kCornerDirs[i][0] * halfSide, kCornerDirs[i][1] * halfSide, 0.0));
+
     return Acad::eOk;
 }
 
@@ -282,9 +296,30 @@ Acad::ErrorStatus CPrincessGemstone::subMoveGripPointsAt(
 
     for (int i = 0; i < indices.length(); ++i)
     {
-        if (indices[i] == 0)
+        const int grip = indices[i];
+
+        if (grip == kGripCenter)
         {
             m_center += offset;
+        }
+        else if (grip == kGripCrownTop)
+        {
+            const double newCrownHeight = m_squareSide * m_crownHeight / 100.0 + offset.z;
+            if (newCrownHeight > 0.0)
+                m_crownHeight = (newCrownHeight / m_squareSide) * 100.0;
+        }
+        else if (grip == kGripCulet)
+        {
+            const double newPavilionDepth = m_squareSide * m_pavilionDepth / 100.0 - offset.z;
+            if (newPavilionDepth > 0.0)
+                m_pavilionDepth = (newPavilionDepth / m_squareSide) * 100.0;
+        }
+        else if (grip >= kGripCornerFirst && grip <= kGripCornerLast)
+        {
+            const double* dir = kCornerDirs[grip - kGripCornerFirst];
+            const double newSide = m_squareSide + dir[0] * offset.x + dir[1] * offset.y;
+            if (newSide > 0.1)
+                m_squareSide = newSide;
         }
     }
 

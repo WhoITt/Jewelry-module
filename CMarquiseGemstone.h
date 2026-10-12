@@ -59,6 +59,23 @@ protected:
     virtual Acad::ErrorStatus dxfInFields(AcDbDxfFiler* pFiler) override;
 
 private:
+    enum GripIndex
+    {
+        kGripCenter = 0,
+        kGripLengthPos = 1,
+        kGripWidthPos = 2,
+        kGripCrownTop = 3,
+        kGripCulet = 4,
+        kGripLengthNeg = 5,
+        kGripWidthNeg = 6,
+        kGripTableLengthNeg = 7,
+        kGripTableLengthPos = 8,
+        kGripTableWidthNeg = 9,
+        kGripTableWidthPos = 10
+    };
+
+    void setTablePercentClamped(double percent);
+
     double m_length;
     double m_width;
     double m_totalDepth;
@@ -71,6 +88,9 @@ private:
     static constexpr double PAVILION_DEPTH_PERCENT = 85.0;
     static constexpr double GIRDLE_PERCENT = 1.0;
     static constexpr double DEFAULT_TABLE_PERCENT = 58.0;
+    static constexpr double MIN_TABLE_PERCENT = 50.0;
+    static constexpr double MAX_TABLE_PERCENT = 70.0;
+    static constexpr double TABLE_TIP_FACTOR = 0.9;
 
     static Adesk::UInt32 kCurrentVersionNumber;
 };

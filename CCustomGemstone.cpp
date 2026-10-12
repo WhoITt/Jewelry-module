@@ -6,6 +6,15 @@
 namespace
 {
     constexpr double PI_VALUE = 3.14159265358979323846;
+
+    const double kGripAxisDirs[4][2] = { { 1.0, 0.0 }, { -1.0, 0.0 }, { 0.0, 1.0 }, { 0.0, -1.0 } };
+
+    double movedGripRadius(int axisIndex, double radius, const AcGeVector3d& offset)
+    {
+        const double x = kGripAxisDirs[axisIndex][0] * radius + offset.x;
+        const double y = kGripAxisDirs[axisIndex][1] * radius + offset.y;
+        return std::sqrt(x * x + y * y);
+    }
 }
 
 Adesk::UInt32 CCustomGemstone::kCurrentVersionNumber = 1;
@@ -451,7 +460,21 @@ Acad::ErrorStatus CCustomGemstone::subGetGripPoints(
     AcDbIntArray& geomIds) const
 {
     assertReadEnabled();
+
+    const double r = m_girdleDiameter / 2.0;
+    const double tableR = r * m_tablePercent / 100.0;
+    const double crownH = m_absoluteCrownHeight;
+
     gripPoints.append(m_center);
+    gripPoints.append(m_center + AcGeVector3d(0.0, 0.0, crownH));
+    gripPoints.append(m_center + AcGeVector3d(0.0, 0.0, -m_absolutePavilionDepth));
+
+    for (int i = 0; i < 4; ++i)
+        gripPoints.append(m_center + AcGeVector3d(kGripAxisDirs[i][0] * r, kGripAxisDirs[i][1] * r, 0.0));
+
+    for (int i = 0; i < 4; ++i)
+        gripPoints.append(m_center + AcGeVector3d(kGripAxisDirs[i][0] * tableR, kGripAxisDirs[i][1] * tableR, crownH));
+
     return Acad::eOk;
 }
 
@@ -463,8 +486,45 @@ Acad::ErrorStatus CCustomGemstone::subMoveGripPointsAt(
 
     for (int i = 0; i < indices.length(); ++i)
     {
-        if (indices[i] == 0)
+        const int grip = indices[i];
+
+        if (grip == kGripCenter)
+        {
             m_center += offset;
+        }
+        else if (grip == kGripCrownTop)
+        {
+            const double newCrownHeight = m_absoluteCrownHeight + offset.z;
+            if (newCrownHeight >= 0.05 && newCrownHeight <= 50.0)
+            {
+                m_absoluteCrownHeight = newCrownHeight;
+                m_crownHeight = (m_absoluteCrownHeight / m_girdleDiameter) * 100.0;
+            }
+        }
+        else if (grip == kGripCulet)
+        {
+            const double newPavilionDepth = m_absolutePavilionDepth - offset.z;
+            if (newPavilionDepth >= 0.05 && newPavilionDepth <= 60.0)
+            {
+                m_absolutePavilionDepth = newPavilionDepth;
+                m_pavilionDepth = (m_absolutePavilionDepth / m_girdleDiameter) * 100.0;
+            }
+        }
+        else if (grip >= kGripGirdleFirst && grip <= kGripGirdleLast)
+        {
+            const double newDiameter =
+                2.0 * movedGripRadius(grip - kGripGirdleFirst, m_girdleDiameter / 2.0, offset);
+            if (newDiameter >= 0.5 && newDiameter <= 100.0)
+                setGirdleDiameter(newDiameter);
+        }
+        else if (grip >= kGripTableFirst && grip <= kGripTableLast)
+        {
+            const double r = m_girdleDiameter / 2.0;
+            const double newTablePercent =
+                movedGripRadius(grip - kGripTableFirst, r * m_tablePercent / 100.0, offset) / r * 100.0;
+            if (newTablePercent >= 10.0 && newTablePercent <= 90.0)
+                m_tablePercent = newTablePercent;
+        }
     }
 
     return Acad::eOk;

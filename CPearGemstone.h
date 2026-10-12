@@ -62,6 +62,17 @@ protected:
 private:
     static Adesk::UInt32 kCurrentVersionNumber;
 
+    enum GripIndex
+    {
+        kGripCenter = 0,
+        kGripTip = 1,
+        kGripWidthPos = 2,
+        kGripCrownTop = 3,
+        kGripCulet = 4,
+        kGripRoundEnd = 5,
+        kGripWidthNeg = 6
+    };
+
     double m_length;
     double m_width;
     double m_totalDepth;
@@ -85,4 +96,7 @@ private:
     static constexpr double PAVILION_DEPTH_PERCENT = 85.0;
     static constexpr double GIRDLE_PERCENT = 1.0;
     static constexpr double TABLE_SIZE_PERCENT = 58.0;
+    static constexpr double TIP_OFFSET = 0.50;
+    static constexpr double ROUND_END_OFFSET = -0.40;
+    static constexpr double WIDEST_OFFSET = -0.10;
 };
