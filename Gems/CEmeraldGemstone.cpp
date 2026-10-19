@@ -7,7 +7,7 @@ Adesk::UInt32 CEmeraldGemstone::kCurrentVersionNumber = 1;
 
 ACRX_DXF_DEFINE_MEMBERS(
     CEmeraldGemstone,
-    AcDbEntity,
+    CJewelryGemstone,
     AcDb::kDHL_CURRENT,
     AcDb::kMReleaseCurrent,
     AcDbProxyEntity::kAllAllowedBits,
@@ -173,6 +173,41 @@ AcString CEmeraldGemstone::cutName() const
 {
     assertReadEnabled();
     return L"Emerald";
+}
+
+const wchar_t* CEmeraldGemstone::typeId() const
+{
+    return L"emerald";
+}
+
+CJewelryGemstone::OutlineShape CEmeraldGemstone::outlineShape() const
+{
+    return kOutlineRect;
+}
+
+AcCmColor CEmeraldGemstone::defaultColor() const
+{
+    AcCmColor color;
+    color.setRGB(80, 200, 120);
+    return color;
+}
+
+void CEmeraldGemstone::getDimensions(double& length, double& width, double& height) const
+{
+    assertReadEnabled();
+    length = m_length;
+    width = m_width;
+    height = m_totalDepth;
+}
+
+Acad::ErrorStatus CEmeraldGemstone::setDimensions(double length, double width, double height)
+{
+    Acad::ErrorStatus es = setLength(length);
+    if (es == Acad::eOk)
+        es = setWidth(width);
+    if (es == Acad::eOk)
+        es = setTotalDepth(height);
+    return es;
 }
 
 void CEmeraldGemstone::createEmeraldProfile(

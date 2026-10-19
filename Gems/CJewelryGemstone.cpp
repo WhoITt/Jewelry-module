@@ -8,10 +8,7 @@
 
 Adesk::UInt32 CJewelryGemstone::kCurrentVersionNumber = 1;
 
-ACRX_DEFINE_MEMBERS(
-    CJewelryGemstone,
-    ACRX_DEFINE_MEMBERS_ONLY
-);
+ACRX_NO_CONS_DEFINE_MEMBERS(CJewelryGemstone, AcDbEntity);
 
 
 // Конструкторы CJewelryGemstone

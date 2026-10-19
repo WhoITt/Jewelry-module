@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "CRingEntity.h"
-#include "CJewelryGemstone.h"
+#include "Gems/CJewelryGemstone.h"
 #include <algorithm>
 #include <cmath>
 
@@ -95,7 +95,7 @@ CRingEntity::CRingEntity()
     , m_stoneWidth(2.4)
     , m_stoneHeight(1.7)
     , m_railStoneCount(0)
-    , m_stoneShapeType(kStoneRound)
+    , m_stoneShapeType(CJewelryGemstone::kOutlineRound)
     , m_linkedStoneId(AcDbObjectId::kNull)
 {
 }
@@ -122,7 +122,7 @@ CRingEntity::CRingEntity(
     , m_stoneWidth(2.4)
     , m_stoneHeight(1.7)
     , m_railStoneCount(0)
-    , m_stoneShapeType(kStoneRound)
+    , m_stoneShapeType(CJewelryGemstone::kOutlineRound)
     , m_linkedStoneId(AcDbObjectId::kNull)
 {
 }
@@ -249,7 +249,7 @@ Acad::ErrorStatus CRingEntity::setStoneDimensions(double length, double width, d
 Acad::ErrorStatus CRingEntity::setStoneShapeType(StoneShapeType type)
 {
     assertWriteEnabled();
-    if (type < kStoneRound || type > kStonePear)
+    if (type < CJewelryGemstone::kOutlineRound || type > CJewelryGemstone::kOutlinePear)
         return Acad::eInvalidInput;
     m_stoneShapeType = type;
     return Acad::eOk;
@@ -528,7 +528,7 @@ void CRingEntity::appendBezelGeometry(
     auto contourPoint = [&](bool outer, double scale, double angle, double& x, double& y)
     {
         const double offset = (outer ? wallThickness : stoneClearance);
-        if (m_stoneShapeType == kStoneRect)
+        if (m_stoneShapeType == CJewelryGemstone::kOutlineRect)
         {
             const double c = std::cos(angle);
             const double s = std::sin(angle);
@@ -540,13 +540,13 @@ void CRingEntity::appendBezelGeometry(
             x = radius * c;
             y = radius * s;
         }
-        else if (m_stoneShapeType == kStonePear)
+        else if (m_stoneShapeType == CJewelryGemstone::kOutlinePear)
         {
             const double radius = pearContourRadius(angle, offset) * scale;
             x = radius * std::cos(angle);
             y = radius * std::sin(angle);
         }
-        else if (m_stoneShapeType == kStoneOval)
+        else if (m_stoneShapeType == CJewelryGemstone::kOutlineOval)
         {
             const double rx = (m_stoneLength * 0.5 + offset) * scale;
             const double ry = (m_stoneWidth * 0.5 + offset) * scale;
@@ -681,7 +681,7 @@ void CRingEntity::appendProngsGeometry(
     {
         const double c = std::cos(angle);
         const double s = std::sin(angle);
-        if (m_stoneShapeType == kStoneRect)
+        if (m_stoneShapeType == CJewelryGemstone::kOutlineRect)
         {
             const double halfL = std::max(0.2, m_stoneLength * 0.5 + offset);
             const double halfW = std::max(0.2, m_stoneWidth * 0.5 + offset);
@@ -689,7 +689,7 @@ void CRingEntity::appendProngsGeometry(
             const double ty = std::abs(s) > 1.0e-6 ? halfW / std::abs(s) : 1.0e9;
             return std::min(tx, ty);
         }
-        if (m_stoneShapeType == kStonePear)
+        if (m_stoneShapeType == CJewelryGemstone::kOutlinePear)
         {
             struct KeyPoint
             {
@@ -740,7 +740,7 @@ void CRingEntity::appendProngsGeometry(
 
             return std::max(0.2, bestT + offset);
         }
-        if (m_stoneShapeType == kStoneOval)
+        if (m_stoneShapeType == CJewelryGemstone::kOutlineOval)
         {
             const double rx = std::max(0.2, m_stoneLength * 0.5 + offset);
             const double ry = std::max(0.2, m_stoneWidth * 0.5 + offset);
@@ -793,7 +793,7 @@ void CRingEntity::appendProngsGeometry(
                     if (level == kLevelCount - 1)
                     {
                         offset = -lipOverhang;
-                        if (m_stoneShapeType == kStonePear)
+                        if (m_stoneShapeType == CJewelryGemstone::kOutlinePear)
                             offset -= prongClearance * 1.5;
                     }
                     innerRadius = contourRadius(angle, offset);

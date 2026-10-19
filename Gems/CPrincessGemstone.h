@@ -53,6 +53,12 @@ public:
         return L"Princess Cut";
     }
 
+    virtual const wchar_t* typeId() const override;
+    virtual OutlineShape outlineShape() const override;
+    virtual AcCmColor defaultColor() const override;
+    virtual void getDimensions(double& length, double& width, double& height) const override;
+    virtual Acad::ErrorStatus setDimensions(double length, double width, double height) override;
+
     virtual void buildGemGeometry(
         AcGePoint3dArray& vertices,
         AcGeVector3dArray& normals,

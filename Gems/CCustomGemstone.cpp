@@ -21,7 +21,7 @@ Adesk::UInt32 CCustomGemstone::kCurrentVersionNumber = 1;
 
 ACRX_DXF_DEFINE_MEMBERS(
     CCustomGemstone,
-    AcDbEntity,
+    CJewelryGemstone,
     AcDb::kDHL_CURRENT,
     AcDb::kMReleaseCurrent,
     AcDbProxyEntity::kAllAllowedBits,
@@ -238,6 +238,40 @@ double CCustomGemstone::caratWeight() const
     const double h = totalHeight();
 
     return d * d * h * 0.00612;
+}
+
+const wchar_t* CCustomGemstone::typeId() const
+{
+    return L"custom";
+}
+
+CJewelryGemstone::OutlineShape CCustomGemstone::outlineShape() const
+{
+    return kOutlineRound;
+}
+
+AcCmColor CCustomGemstone::defaultColor() const
+{
+    AcCmColor color;
+    color.setRGB(230, 245, 255);
+    return color;
+}
+
+void CCustomGemstone::getDimensions(double& length, double& width, double& height) const
+{
+    assertReadEnabled();
+    length = m_girdleDiameter;
+    width = m_girdleDiameter;
+    height = totalHeight();
+}
+
+Acad::ErrorStatus CCustomGemstone::setDimensions(double length, double width, double height)
+{
+    (void)width;
+    Acad::ErrorStatus es = setGirdleDiameter(length);
+    if (es == Acad::eOk)
+        es = setTotalHeight(height);
+    return es;
 }
 
 void CCustomGemstone::buildGemGeometry(

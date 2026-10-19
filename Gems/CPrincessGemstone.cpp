@@ -10,7 +10,7 @@ Adesk::UInt32 CPrincessGemstone::kCurrentVersionNumber = 1;
 
 ACRX_DXF_DEFINE_MEMBERS(
     CPrincessGemstone,
-    AcDbEntity,
+    CJewelryGemstone,
     AcDb::kDHL_CURRENT,
     AcDb::kMReleaseCurrent,
     AcDbProxyEntity::kAllAllowedBits,
@@ -145,6 +145,39 @@ double CPrincessGemstone::caratWeight() const
     const double h = totalHeight();
 
     return side * side * h * 0.0095;
+}
+
+const wchar_t* CPrincessGemstone::typeId() const
+{
+    return L"princess";
+}
+
+CJewelryGemstone::OutlineShape CPrincessGemstone::outlineShape() const
+{
+    return kOutlineRect;
+}
+
+AcCmColor CPrincessGemstone::defaultColor() const
+{
+    AcCmColor color;
+    color.setRGB(9, 76, 144);
+    return color;
+}
+
+void CPrincessGemstone::getDimensions(double& length, double& width, double& height) const
+{
+    assertReadEnabled();
+    length = m_squareSide;
+    width = m_squareSide;
+    height = totalHeight();
+}
+
+Acad::ErrorStatus CPrincessGemstone::setDimensions(double length, double width, double height)
+{
+    // The height follows from the side and the crown and pavilion proportions.
+    (void)width;
+    (void)height;
+    return setSquareSide(length);
 }
 
 void CPrincessGemstone::buildGemGeometry(

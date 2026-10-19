@@ -7,7 +7,7 @@ Adesk::UInt32 CPearGemstone::kCurrentVersionNumber = 1;
 
 ACRX_DXF_DEFINE_MEMBERS(
     CPearGemstone,
-    AcDbEntity,
+    CJewelryGemstone,
     AcDb::kDHL_CURRENT,
     AcDb::kMReleaseCurrent,
     AcDbProxyEntity::kAllAllowedBits,
@@ -146,6 +146,41 @@ AcString CPearGemstone::cutName() const
 {
     assertReadEnabled();
     return L"Pear";
+}
+
+const wchar_t* CPearGemstone::typeId() const
+{
+    return L"pear";
+}
+
+CJewelryGemstone::OutlineShape CPearGemstone::outlineShape() const
+{
+    return kOutlinePear;
+}
+
+AcCmColor CPearGemstone::defaultColor() const
+{
+    AcCmColor color;
+    color.setRGB(220, 20, 60);
+    return color;
+}
+
+void CPearGemstone::getDimensions(double& length, double& width, double& height) const
+{
+    assertReadEnabled();
+    length = m_length;
+    width = m_width;
+    height = m_totalDepth;
+}
+
+Acad::ErrorStatus CPearGemstone::setDimensions(double length, double width, double height)
+{
+    Acad::ErrorStatus es = setLength(length);
+    if (es == Acad::eOk)
+        es = setWidth(width);
+    if (es == Acad::eOk)
+        es = setTotalDepth(height);
+    return es;
 }
 
 void CPearGemstone::createPearProfile(AcGePoint3dArray& points) const

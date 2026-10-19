@@ -1,121 +1,107 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Исходные файлы">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Gems">
+      <UniqueIdentifier>{677A2482-264B-440A-9229-3F4ECF4A0749}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Файлы заголовков">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="Ring">
+      <UniqueIdentifier>{8C408368-3977-4AF8-BA5D-6313101D524E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Файлы ресурсов">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Dialogs">
+      <UniqueIdentifier>{4D044A96-FFEE-4934-8E42-EE3371D2F20C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res">
+      <UniqueIdentifier>{75E0E82F-A20E-4741-9FFE-49D5884C88E5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VKR_NRX.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="VKR_NRX.cpp" />
+    <ClCompile Include="Gems\CJewelryGemstone.cpp">
+      <Filter>Gems</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Gems\CCustomGemstone.cpp">
+      <Filter>Gems</Filter>
     </ClCompile>
-    <ClCompile Include="CCustomGemstone.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Gems\CPrincessGemstone.cpp">
+      <Filter>Gems</Filter>
     </ClCompile>
-    <ClCompile Include="CJewelryGemstone.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Gems\CEmeraldGemstone.cpp">
+      <Filter>Gems</Filter>
     </ClCompile>
-    <ClCompile Include="CPrincessGemstone.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Gems\CPearGemstone.cpp">
+      <Filter>Gems</Filter>
     </ClCompile>
-    <ClCompile Include="CEmeraldGemstone.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Gems\CMarquiseGemstone.cpp">
+      <Filter>Gems</Filter>
     </ClCompile>
-    <ClCompile Include="CMarquiseGemstone.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Ring\CRingEntity.cpp">
+      <Filter>Ring</Filter>
     </ClCompile>
-    <ClCompile Include="CPearGemstone.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Dialogs\RingSelectorDialogQt.cpp">
+      <Filter>Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="GemstoneSelectorDialogQt.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Dialogs\GemstoneSelectorDialogQt.cpp">
+      <Filter>Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="CRingEntity.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Dialogs\StoneSizeListDialog.cpp">
+      <Filter>Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="RingSelectorDialogQt.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="Dialogs\GemSizeCatalog.cpp">
+      <Filter>Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="GemSizeCatalog.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="StoneSizeListDialog.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
+    <ClCompile Include="pch.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="VKR_NRX.def">
-      <Filter>Исходные файлы</Filter>
-    </None>
-    <None Include="res\VKR_NRX.rc2">
-      <Filter>Файлы ресурсов</Filter>
-    </None>
+    <ClInclude Include="VKR_NRX.h" />
+    <ClInclude Include="Gems\CJewelryGemstone.h">
+      <Filter>Gems</Filter>
+    </ClInclude>
+    <ClInclude Include="Gems\CCustomGemstone.h">
+      <Filter>Gems</Filter>
+    </ClInclude>
+    <ClInclude Include="Gems\CPrincessGemstone.h">
+      <Filter>Gems</Filter>
+    </ClInclude>
+    <ClInclude Include="Gems\CEmeraldGemstone.h">
+      <Filter>Gems</Filter>
+    </ClInclude>
+    <ClInclude Include="Gems\CPearGemstone.h">
+      <Filter>Gems</Filter>
+    </ClInclude>
+    <ClInclude Include="Gems\CMarquiseGemstone.h">
+      <Filter>Gems</Filter>
+    </ClInclude>
+    <ClInclude Include="Ring\CRingEntity.h">
+      <Filter>Ring</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\RingSelectorDialogQt.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\GemstoneSelectorDialogQt.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\StoneSizeListDialog.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\GemSizeCatalog.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="res\Resource.h">
+      <Filter>res</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="VKR_NRX.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="CCustomGemstone.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="CPrincessGemstone.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="CJewelryGemstone.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="CEmeraldGemstone.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="CMarquiseGemstone.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="CPearGemstone.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="GemstoneSelectorDialogQt.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="CRingEntity.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="RingSelectorDialogQt.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="GemSizeCatalog.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="StoneSizeListDialog.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="VKR_NRX.rc">
-      <Filter>Файлы ресурсов</Filter>
+    <ResourceCompile Include="res\VKR_NRX.rc">
+      <Filter>res</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\VKR_NRX.rc2">
+      <Filter>res</Filter>
+    </None>
+    <None Include="VKR_NRX.def" />
   </ItemGroup>
 </Project>

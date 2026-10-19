@@ -11,6 +11,14 @@ class CJewelryGemstone : public NcDbEntity
 public:
     ACRX_DECLARE_MEMBERS(CJewelryGemstone);
 
+    enum OutlineShape
+    {
+        kOutlineRound = 0,
+        kOutlineRect = 1,
+        kOutlineOval = 2,
+        kOutlinePear = 3
+    };
+
 public:
     CJewelryGemstone();
     CJewelryGemstone(const AcGePoint3d& center);
@@ -59,6 +67,12 @@ public:
     virtual double volume() const = 0;
     virtual double caratWeight() const = 0;
     virtual AcString cutName() const = 0;
+
+    virtual const wchar_t* typeId() const = 0;
+    virtual OutlineShape outlineShape() const = 0;
+    virtual AcCmColor defaultColor() const = 0;
+    virtual void getDimensions(double& length, double& width, double& height) const = 0;
+    virtual Acad::ErrorStatus setDimensions(double length, double width, double height) = 0;
 
     virtual void buildGemGeometry(
         AcGePoint3dArray& vertices,

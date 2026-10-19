@@ -1,39 +1,23 @@
 ﻿#include "pch.h"
-#include <QApplication>
-#include <QColor>
-#include "GemstoneSelectorDialogQt.h"
-#include "RingSelectorDialogQt.h"
-#include "framework.h"
-#include "VKR_NRX.h"
-#include "CCustomGemstone.h" 
-#include "CPrincessGemstone.h"
-#include "CRingEntity.h"
-#include "CPearGemstone.h"
-#include "CEmeraldGemstone.h"
-#include "CMarquiseGemstone.h"
 
-#include <cstdio>
-#include <string>
+#include "VKR_NRX.h"
+
+#include <QApplication>
+
+#include "Dialogs/GemSizeCatalog.h"
+#include "Dialogs/GemstoneSelectorDialogQt.h"
+#include "Dialogs/RingSelectorDialogQt.h"
+#include "Gems/CCustomGemstone.h"
+#include "Gems/CPrincessGemstone.h"
+#include "Ring/CRingEntity.h"
+#include "Gems/CPearGemstone.h"
+#include "Gems/CEmeraldGemstone.h"
+#include "Gems/CMarquiseGemstone.h"
+
 
 
 
 static QApplication* g_pQApp = nullptr;
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
-BEGIN_MESSAGE_MAP(CMFCLibraryNrxProjectApp, CWinApp)
-END_MESSAGE_MAP()
-
-CMFCLibraryNrxProjectApp::CMFCLibraryNrxProjectApp() {}
-CMFCLibraryNrxProjectApp theApp;
-
-BOOL CMFCLibraryNrxProjectApp::InitInstance()
-{
-    CWinApp::InitInstance();
-    return TRUE;
-}
 
 static void addToModelSpaceNc(NcDbObjectId& objId, NcDbEntity* pEnt)
 {
@@ -57,50 +41,11 @@ static bool promptEntityId(const wchar_t* prompt, AcDbObjectId& objectId)
     return acdbGetObjectId(objectId, entName) == Acad::eOk;
 }
 
-static void gemstoneDimensionsFromExtents(
-    CJewelryGemstone* pGemstone,
-    double& length,
-    double& width,
-    double& height)
-{
-    length = 2.0;
-    width = 2.0;
-    height = 1.5;
-
-    if (pGemstone == nullptr)
-        return;
-
-    AcDbExtents extents;
-    if (pGemstone->subGetGeomExtents(extents) != Acad::eOk)
-        return;
-
-    const AcGePoint3d minPt = extents.minPoint();
-    const AcGePoint3d maxPt = extents.maxPoint();
-    length = maxPt.x - minPt.x;
-    width = maxPt.y - minPt.y;
-    height = maxPt.z - minPt.z;
-
-    if (length <= 1.0e-6) length = 2.0;
-    if (width <= 1.0e-6) width = length;
-    if (height <= 1.0e-6) height = 1.5;
-}
-
 static AcGePoint3d recommendedSeatCenter(const AcGePoint3d& ringCenter, double innerRadius, double bandWidth, double thickness)
 {
     (void)thickness;
     const double outerRadius = innerRadius + bandWidth;
     return ringCenter + AcGeVector3d(0.0, 0.0, outerRadius);
-}
-
-static CRingEntity::StoneShapeType stoneShapeFromGemType(const QString& gemType)
-{
-    if (gemType == "emerald" || gemType == "princess")
-        return CRingEntity::kStoneRect;
-    if (gemType == "pear")
-        return CRingEntity::kStonePear;
-    if (gemType == "marquise")
-        return CRingEntity::kStoneOval;
-    return CRingEntity::kStoneRound;
 }
 
 static const wchar_t* profileNameRu(CRingEntity::RingProfileType profileType)
@@ -134,21 +79,6 @@ static const wchar_t* settingNameRu(CRingEntity::SettingType settingType)
     }
 }
 
-static const wchar_t* gemTypeNameRu(const QString& gemType)
-{
-    if (gemType == "custom")
-        return L"Бриллиант";
-    if (gemType == "princess")
-        return L"Принцесса";
-    if (gemType == "emerald")
-        return L"Изумруд";
-    if (gemType == "pear")
-        return L"Груша";
-    if (gemType == "marquise")
-        return L"Маркиз";
-    return L"Неизвестная";
-}
-
 static const wchar_t* ringColorNameRu(const QColor& color)
 {
     if (color == QColor(212, 175, 55))
@@ -171,13 +101,6 @@ static const wchar_t* ringColorNameRu(const QColor& color)
 static CJewelryGemstone* createGemstoneByType(
     const QString& gemType,
     const AcGePoint3d& center,
-    double length,
-    double width,
-    double height);
-
-static void applyGemstoneAppearance(CJewelryGemstone* pGemstone, const QString& gemType);
-static void resizeGemstoneByType(
-    CJewelryGemstone* pGemstone,
     double length,
     double width,
     double height);
@@ -213,149 +136,23 @@ static CJewelryGemstone* createGemstoneByType(
     double width,
     double height)
 {
+    CJewelryGemstone* pGemstone = nullptr;
     if (gemType == "emerald")
-        return new CEmeraldGemstone(center, length, width, height);
-    if (gemType == "princess")
-        return new CPrincessGemstone(center, length);
-    if (gemType == "pear")
-        return new CPearGemstone(center, length, width, height);
-    if (gemType == "marquise")
-        return new CMarquiseGemstone(center, length, width, height);
-    if (gemType == "custom")
-    {
-        CCustomGemstone* pRound = new CCustomGemstone(center, length);
-        pRound->setTotalHeight(height);
-        return pRound;
-    }
-    return nullptr;
-}
-
-static void applyGemstoneAppearance(CJewelryGemstone* pGemstone, const QString& gemType)
-{
-    if (pGemstone == nullptr)
-        return;
-
-    NcCmColor color;
-    if (gemType == "emerald")
-        color.setRGB(80, 200, 120);
+        pGemstone = new CEmeraldGemstone(center, length, width, height);
     else if (gemType == "princess")
-        color.setRGB(9, 76, 144);
+        pGemstone = new CPrincessGemstone(center, length);
     else if (gemType == "pear")
-        color.setRGB(220, 20, 60);
+        pGemstone = new CPearGemstone(center, length, width, height);
     else if (gemType == "marquise")
-        color.setRGB(255, 215, 0);
+        pGemstone = new CMarquiseGemstone(center, length, width, height);
+    else if (gemType == "custom")
+        pGemstone = new CCustomGemstone(center, length);
     else
-        color.setRGB(230, 245, 255);
+        return nullptr;
 
-    pGemstone->setColor(color);
-}
-
-static void resizeGemstoneByType(
-    CJewelryGemstone* pGemstone,
-    double length,
-    double width,
-    double height)
-{
-    if (pGemstone == nullptr)
-        return;
-
-    if (CCustomGemstone* pRound = dynamic_cast<CCustomGemstone*>(pGemstone))
-    {
-        pRound->setGirdleDiameter(length);
-        pRound->setTotalHeight(height);
-        return;
-    }
-
-    if (CPrincessGemstone* pPrincess = dynamic_cast<CPrincessGemstone*>(pGemstone))
-    {
-        pPrincess->setSquareSide(length);
-        return;
-    }
-
-    if (CEmeraldGemstone* pEmerald = dynamic_cast<CEmeraldGemstone*>(pGemstone))
-    {
-        pEmerald->setLength(length);
-        pEmerald->setWidth(width);
-        pEmerald->setTotalDepth(height);
-        return;
-    }
-
-    if (CPearGemstone* pPear = dynamic_cast<CPearGemstone*>(pGemstone))
-    {
-        pPear->setLength(length);
-        pPear->setWidth(width);
-        pPear->setTotalDepth(height);
-        return;
-    }
-
-    if (CMarquiseGemstone* pMarquise = dynamic_cast<CMarquiseGemstone*>(pGemstone))
-    {
-        pMarquise->setLength(length);
-        pMarquise->setWidth(width);
-        pMarquise->setTotalDepth(height);
-    }
-}
-
-static QString gemstoneTypeFromEntity(CJewelryGemstone* pGemstone)
-{
-    if (dynamic_cast<CEmeraldGemstone*>(pGemstone) != nullptr)
-        return "emerald";
-    if (dynamic_cast<CPrincessGemstone*>(pGemstone) != nullptr)
-        return "princess";
-    if (dynamic_cast<CPearGemstone*>(pGemstone) != nullptr)
-        return "pear";
-    if (dynamic_cast<CMarquiseGemstone*>(pGemstone) != nullptr)
-        return "marquise";
-    return "custom";
-}
-
-static void gemstoneDimensionsFromEntity(
-    CJewelryGemstone* pGemstone,
-    double& length,
-    double& width,
-    double& height)
-{
-    if (CCustomGemstone* pRound = dynamic_cast<CCustomGemstone*>(pGemstone))
-    {
-        length = pRound->girdleDiameter();
-        width = length;
-        height = pRound->totalHeight();
-        return;
-    }
-
-    if (CPrincessGemstone* pPrincess = dynamic_cast<CPrincessGemstone*>(pGemstone))
-    {
-        length = pPrincess->squareSide();
-        width = length;
-        height = pPrincess->totalHeight();
-        return;
-    }
-
-    if (CEmeraldGemstone* pEmerald = dynamic_cast<CEmeraldGemstone*>(pGemstone))
-    {
-        length = pEmerald->length();
-        width = pEmerald->width();
-        height = pEmerald->totalDepth();
-        return;
-    }
-
-    if (CPearGemstone* pPear = dynamic_cast<CPearGemstone*>(pGemstone))
-    {
-        length = pPear->length();
-        width = pPear->width();
-        height = pPear->totalDepth();
-        return;
-    }
-
-    if (CMarquiseGemstone* pMarquise = dynamic_cast<CMarquiseGemstone*>(pGemstone))
-    {
-        length = pMarquise->length();
-        width = pMarquise->width();
-        height = pMarquise->totalDepth();
-        return;
-    }
-
-    gemstoneDimensionsFromExtents(pGemstone, length, width, height);
+    pGemstone->setDimensions(length, width, height);
+    pGemstone->setColor(pGemstone->defaultColor());
+    return pGemstone;
 }
 
 static void applyRingDialogColor(CRingEntity* pRing, const RingSelectorDialogQt& dialog)
@@ -372,14 +169,15 @@ static void applyRingDialogColor(CRingEntity* pRing, const RingSelectorDialogQt&
 static void updateRingStoneData(
     CRingEntity* pRing,
     const RingSelectorDialogQt& dialog,
+    const CJewelryGemstone* pStone,
     const AcDbObjectId& stoneId)
 {
-    if (pRing == nullptr)
+    if (pRing == nullptr || pStone == nullptr)
         return;
 
     pRing->setStoneSeatRadius(dialog.recommendedSeatRadius());
     pRing->setStoneDimensions(dialog.gemLength(), dialog.gemWidth(), dialog.gemHeight());
-    pRing->setStoneShapeType(stoneShapeFromGemType(dialog.gemType()));
+    pRing->setStoneShapeType(pStone->outlineShape());
 
     const AcGePoint3d seatCenter = recommendedSeatCenter(
         pRing->center(),
@@ -398,8 +196,9 @@ static void printGemstoneSummary(
     double width,
     double height)
 {
+    const std::wstring cutName = GemSizeCatalog::gemDisplayName(gemType).toStdWString();
     acutPrintf(L"\n%s", title);
-    acutPrintf(L"\n  Огранка: %s", gemTypeNameRu(gemType));
+    acutPrintf(L"\n  Огранка: %s", cutName.c_str());
     if (gemType == "custom")
         acutPrintf(L"\n  Диаметр: %.2f мм", length);
     else if (gemType == "princess")
@@ -617,8 +416,6 @@ static bool writeRingGeometryToStl(
 
 void cmdCreateRing()
 {
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
     if (!g_pQApp)
     {
         int argc = 0;
@@ -686,7 +483,6 @@ void cmdCreateRing()
                 ? dialog.recommendedBezelHeight()
                 : dialog.recommendedProngHeight());
         pRing->setStoneDimensions(dialog.gemLength(), dialog.gemWidth(), dialog.gemHeight());
-        pRing->setStoneShapeType(stoneShapeFromGemType(dialog.gemType()));
     }
     else
     {
@@ -717,7 +513,6 @@ void cmdCreateRing()
 
         if (pGemstone != nullptr)
         {
-            applyGemstoneAppearance(pGemstone, gemType);
             orientAndPlaceGemstone(pGemstone, seatCenter, gemHeight);
             pGemstone->setDatabaseDefaults();
             NcDbObjectId gemObjId;
@@ -726,6 +521,7 @@ void cmdCreateRing()
             CRingEntity* pRingForLink = nullptr;
             if (acdbOpenObject(pRingForLink, objId, AcDb::kForWrite) == Acad::eOk && pRingForLink != nullptr)
             {
+                pRingForLink->setStoneShapeType(pGemstone->outlineShape());
                 pRingForLink->setLinkedStoneId(gemObjId);
                 pRingForLink->close();
             }
@@ -742,8 +538,6 @@ void cmdCreateRing()
 
 void cmdAttachStoneToRing()
 {
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
     if (!g_pQApp)
     {
         int argc = 0;
@@ -791,17 +585,12 @@ void cmdAttachStoneToRing()
         allowStoneForProfile ? pRing->settingType() : CRingEntity::kSettingNone));
     dialog.setProngCount(pRing->prongCount());
 
-    QString detectedGemType = "custom";
-    if (dynamic_cast<CEmeraldGemstone*>(pGemstone) != nullptr) detectedGemType = "emerald";
-    else if (dynamic_cast<CPrincessGemstone*>(pGemstone) != nullptr) detectedGemType = "princess";
-    else if (dynamic_cast<CPearGemstone*>(pGemstone) != nullptr) detectedGemType = "pear";
-    else if (dynamic_cast<CMarquiseGemstone*>(pGemstone) != nullptr) detectedGemType = "marquise";
-    dialog.setGemType(detectedGemType);
+    dialog.setGemType(QString::fromWCharArray(pGemstone->typeId()));
 
-    double gemLength = 2.0;
-    double gemWidth = 2.0;
-    double gemHeight = 1.5;
-    gemstoneDimensionsFromExtents(pGemstone, gemLength, gemWidth, gemHeight);
+    double gemLength = 0.0;
+    double gemWidth = 0.0;
+    double gemHeight = 0.0;
+    pGemstone->getDimensions(gemLength, gemWidth, gemHeight);
     dialog.setGemDimensions(gemLength, gemWidth, gemHeight);
 
     if (dialog.exec() != QDialog::Accepted)
@@ -840,7 +629,7 @@ void cmdAttachStoneToRing()
     {
         pRing->setStoneSeatRadius(dialog.recommendedSeatRadius());
         pRing->setStoneDimensions(dialog.gemLength(), dialog.gemWidth(), dialog.gemHeight());
-        pRing->setStoneShapeType(stoneShapeFromGemType(dialog.gemType()));
+        pRing->setStoneShapeType(pGemstone->outlineShape());
 
         const AcGePoint3d seatCenter = recommendedSeatCenter(
             pRing->center(),
@@ -849,7 +638,7 @@ void cmdAttachStoneToRing()
             pRing->thickness());
         pRing->setStoneCenter(seatCenter);
         pRing->setLinkedStoneId(stoneId);
-        resizeGemstoneByType(pGemstone, dialog.gemLength(), dialog.gemWidth(), dialog.gemHeight());
+        pGemstone->setDimensions(dialog.gemLength(), dialog.gemWidth(), dialog.gemHeight());
         orientAndPlaceGemstone(pGemstone, seatCenter, dialog.gemHeight());
     }
     else
@@ -864,8 +653,6 @@ void cmdAttachStoneToRing()
 
 void cmdEditGemstone()
 {
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
     if (!g_pQApp)
     {
         int argc = 0;
@@ -886,11 +673,11 @@ void cmdEditGemstone()
         return;
     }
 
-    QString gemType = gemstoneTypeFromEntity(pGemstone);
-    double length = 2.0;
-    double width = 2.0;
-    double height = 1.5;
-    gemstoneDimensionsFromEntity(pGemstone, length, width, height);
+    const QString gemType = QString::fromWCharArray(pGemstone->typeId());
+    double length = 0.0;
+    double width = 0.0;
+    double height = 0.0;
+    pGemstone->getDimensions(length, width, height);
 
     GemstoneSelectorDialogQt dialog;
     dialog.setWindowTitle(QString::fromWCharArray(L"Редактирование камня"));
@@ -907,8 +694,8 @@ void cmdEditGemstone()
         return;
     }
 
-    resizeGemstoneByType(pGemstone, dialog.getLength(), dialog.getWidth(), dialog.getHeight());
-    applyGemstoneAppearance(pGemstone, gemType);
+    pGemstone->setDimensions(dialog.getLength(), dialog.getWidth(), dialog.getHeight());
+    pGemstone->setColor(pGemstone->defaultColor());
     printGemstoneSummary(
         L"\nКамень обновлен:",
         gemType,
@@ -921,8 +708,6 @@ void cmdEditGemstone()
 
 void cmdEditRing()
 {
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
     if (!g_pQApp)
     {
         int argc = 0;
@@ -955,9 +740,9 @@ void cmdEditRing()
         acdbOpenObject(pLinkedStone, linkedStoneId, AcDb::kForWrite) == Acad::eOk &&
         pLinkedStone != nullptr)
     {
-        gemType = gemstoneTypeFromEntity(pLinkedStone);
+        gemType = QString::fromWCharArray(pLinkedStone->typeId());
         originalGemType = gemType;
-        gemstoneDimensionsFromEntity(pLinkedStone, gemLength, gemWidth, gemHeight);
+        pLinkedStone->getDimensions(gemLength, gemWidth, gemHeight);
     }
     else
     {
@@ -1028,7 +813,6 @@ void cmdEditRing()
 
             if (pLinkedStone != nullptr)
             {
-                applyGemstoneAppearance(pLinkedStone, dialog.gemType());
                 orientAndPlaceGemstone(
                     pLinkedStone,
                     recommendedSeatCenter(pRing->center(), pRing->innerRadius(), pRing->bandWidth(), pRing->thickness()),
@@ -1040,12 +824,12 @@ void cmdEditRing()
 
         if (pLinkedStone != nullptr)
         {
-            resizeGemstoneByType(pLinkedStone, dialog.gemLength(), dialog.gemWidth(), dialog.gemHeight());
+            pLinkedStone->setDimensions(dialog.gemLength(), dialog.gemWidth(), dialog.gemHeight());
             orientAndPlaceGemstone(
                 pLinkedStone,
                 recommendedSeatCenter(pRing->center(), pRing->innerRadius(), pRing->bandWidth(), pRing->thickness()),
                 dialog.gemHeight());
-            updateRingStoneData(pRing, dialog, linkedStoneId);
+            updateRingStoneData(pRing, dialog, pLinkedStone, linkedStoneId);
             printRingSummary(L"Кольцо обновлено!", dialog, pLinkedStone);
             summaryPrinted = true;
             pLinkedStone->close();
@@ -1066,8 +850,6 @@ void cmdEditRing()
 
 void cmdExportRingStl()
 {
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
     AcDbObjectId ringId;
     if (!promptEntityId(L"\nВыберите кольцо для экспорта STL: ", ringId))
     {
@@ -1118,7 +900,8 @@ void initCustomClasses()
 {
     
     
-    CCustomGemstone::rxInit();          
+    CJewelryGemstone::rxInit();
+    CCustomGemstone::rxInit();
     CPrincessGemstone::rxInit();
     CPearGemstone::rxInit();
     CEmeraldGemstone::rxInit();
@@ -1139,14 +922,12 @@ void uninitCustomClasses()
     deleteAcRxClass(CPearGemstone::desc());
     deleteAcRxClass(CEmeraldGemstone::desc());
     deleteAcRxClass(CMarquiseGemstone::desc());
+    deleteAcRxClass(CJewelryGemstone::desc());
     deleteAcRxClass(CRingEntity::desc());
     acutPrintf(L"\n Класс CCustomGemstone удален");
 }
 void cmdInsertGemstone()
 {
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
-   
     if (!g_pQApp)
     {
         int argc = 0;
@@ -1187,7 +968,6 @@ void cmdInsertGemstone()
 
             if (pGemstone)
             {
-                applyGemstoneAppearance(pGemstone, gemType);
                 double weight = pGemstone->caratWeight();
                 double volume = pGemstone->volume();
                 int facets = pGemstone->facetCount();
@@ -1222,8 +1002,6 @@ ncrxEntryPoint(AcRx::AppMsgCode msg, void* appId)
     {
     case AcRx::kInitAppMsg:
     {
-        AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
         acrxDynamicLinker->unlockApplication(appId);
         acrxDynamicLinker->registerAppMDIAware(appId);
 
@@ -1286,8 +1064,6 @@ ncrxEntryPoint(AcRx::AppMsgCode msg, void* appId)
 
     case AcRx::kUnloadAppMsg:
     {
-        AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
         acedRegCmds->removeGroup(L"VKR_GEMSTONE");
         acedRegCmds->removeGroup(L"VKR_JEWELRY_COMMANDS");
 

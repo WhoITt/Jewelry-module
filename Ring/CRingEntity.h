@@ -8,6 +8,8 @@
 #include "gevec3d.h"
 #include "gemat3d.h"
 
+#include "Gems/CJewelryGemstone.h"
+
 class CRingEntity : public NcDbEntity
 {
 public:
@@ -28,13 +30,7 @@ public:
         kSettingBezel = 2
     };
 
-    enum StoneShapeType
-    {
-        kStoneRound = 0,
-        kStoneRect = 1,
-        kStoneOval = 2,
-        kStonePear = 3
-    };
+    typedef CJewelryGemstone::OutlineShape StoneShapeType;
 
 public:
     CRingEntity();
